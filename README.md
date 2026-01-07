@@ -9,12 +9,11 @@
 
 1. Objectifs de l’Étude
 2. Introduction et Problématique
-3. Thématiques Abordées
-4. Préparation et Qualité des Données
-5. Analyse des Résultats : Facteurs de Risque Dominants
-6. Analyse des Signaux de Protection
-7. Performance Globale du Modèle et Recommandations
-8.  Conclusion et Limites de l’Étude et Perspectives
+3.  Analyse Exploratoire des Données (EDA)
+4.  Prétraitement et Ingénierie des Caractéristiques
+5. Approches de Modélisation
+6. Évaluation des Performances
+7. Conclusion
 
 ---
 
@@ -38,98 +37,51 @@ L’originalité de cette étude réside dans le choix d’un modèle explicatif
 
 ---
 
-## 3. Thématiques Abordées
+3. Analyse Exploratoire des Données (EDA)
+Avant la modélisation, une analyse approfondie a été menée sur le jeu de données UCI Heart Disease pour comprendre la structure et la qualité des informations cliniques.
 
-L’analyse couvre plusieurs dimensions complémentaires de la santé cardiovasculaire :
+Nettoyage rigoureux : Initialement composé de 920 entrées, le dataset présentait de nombreuses valeurs manquantes sur des variables clés. Les colonnes comme id, dataset, fbs (glycémie à jeun) et restecg ont été écartées car elles n'apportaient pas de valeur prédictive fiable ou étaient trop incomplètes. Après suppression des lignes contenant des valeurs nulles, nous avons travaillé sur un échantillon robuste de 299 patients.
 
-### 3.1 Facteurs démographiques
+Analyse de corrélation : La matrice de corrélation a révélé que des facteurs tels que le type de douleur thoracique (cp), l'âge et le sexe jouent un rôle déterminant dans la prédiction.
 
-L’âge et le sexe sont étudiés comme variables structurelles influençant la prédisposition aux pathologies cardiaques. Ces facteurs permettent d’identifier des profils à risque sur le long terme.
+Distribution des classes : L'analyse visuelle montre une répartition des classes (malade vs sain) permettant un entraînement équilibré sans nécessité de rééchantillonnage complexe.
 
-### 3.2 Signes cliniques et biologiques
+(Graphique : Matrice de corrélation des variables cliniques) (Graphique : Répartition des cas positifs et négatifs)
 
-Les symptômes déclarés, tels que les types de douleurs thoraciques, ainsi que les mesures physiologiques (pression artérielle, cholestérol), sont analysés afin d’évaluer leur valeur informative dans la détection de la maladie.
+4. Prétraitement et Ingénierie des Caractéristiques
 
-### 3.3 Examens diagnostiques avancés
+La préparation des données a été une étape cruciale pour assurer la convergence de l'algorithme personnalisé :
 
-Une attention particulière est portée aux résultats d’examens techniques, notamment la fluoroscopie des vaisseaux coronaires, qui fournit une information directe sur l’état du système cardiovasculaire.
+Binarisation de la cible : La variable num (allant de 0 à 4) a été transformée en une variable binaire output (0 pour l'absence de maladie, 1 pour la présence).
 
----
+Encodage Catégoriel : Les variables qualitatives telles que le sexe, le type de douleur thoracique et la pente du segment ST ont été transformées via le One-Hot Encoding. Cela a permis de passer d'un format textuel à un format matriciel de 17 caractéristiques numériques exploitables par les modèles.
 
-## 4. Préparation et Qualité des Données
+Partitionnement : Les données ont été divisées de manière classique : 80% pour l'entraînement (209 individus) et 20% pour le test (90 individus).
 
-Avant toute modélisation, un travail approfondi de préparation des données a été réalisé afin de garantir la robustesse des résultats.
+5. Approches de Modélisation
+   
+Modèle de Référence (Scikit-learn)
+Nous avons utilisé l'implémentation LogisticRegression de Scikit-learn comme référence de performance. Ce modèle utilise des optimiseurs avancés et une régularisation par défaut.
 
-### 4.1 Traitement des données manquantes
+Implémentation Personnalisée (From Scratch)
+Pour comprendre la mécanique interne du modèle, une classe Python a été développée manuellement. Elle repose sur deux piliers mathématiques :
 
+La Fonction Sigmoïde : Utilisée pour transformer la combinaison linéaire des caractéristiques en une probabilité comprise entre 0 et 1.
+La Fonction de Coût (Log-Loss) : Pour mesurer l'erreur du modèle et ajuster les poids via la descente de gradient.
 
-### 4.2 Encodage des variables catégorielles
+6. Évaluation des Performances
+L'évaluation repose sur plusieurs métriques pour garantir que le modèle ne se contente pas de prédire la classe majoritaire.
 
-Les variables qualitatives ont été transformées à l’aide de la méthode du **One-Hot Encoding**, permettant de représenter chaque modalité sous forme de variable binaire. Cette approche améliore la capacité du modèle à capter les effets spécifiques de chaque catégorie.
+Précision Globale (Accuracy) : Le modèle Scikit-learn atteint 84,4%, un score élevé qui témoigne de la pertinence des caractéristiques choisies.
 
-### 4.3 Standardisation des variables numériques
+Matrice de Confusion : Sur les 90 patients testés, le modèle a correctement identifié 33 cas de maladie (Vrais Positifs) et 43 cas de patients sains (Vrais Négatifs). Seuls 6 patients sains ont été classés à tort comme malades.
 
-Les variables quantitatives ont été normalisées afin de rendre les coefficients du modèle comparables et d’éviter qu’une variable à grande échelle ne domine artificiellement les autres.
+Analyse du Rappel (Recall) : Avec un rappel de 0.80 pour la classe "Malade", le modèle est capable de détecter 80% des personnes réellement atteintes, ce qui est crucial dans un contexte médical.
 
----
+(Graphique : Visualisation de la matrice de confusion)
 
-## 5. Analyse des Résultats : Facteurs de Risque Dominants
-
-L’interprétation des résultats repose sur l’analyse des **Odds Ratios (OR)** issus de la régression logistique. Un Odds Ratio supérieur à 1 indique une augmentation du risque, tandis qu’un OR inférieur à 1 suggère un effet protecteur.
-
-### 5.1 Rôle central de l’imagerie médicale (variable `ca`)
-
-La variable représentant le nombre de vaisseaux coronaires colorés lors de la fluoroscopie apparaît comme le facteur le plus déterminant du modèle.
-
-* **Deux vaisseaux atteints (`ca_2.0`)**
-  L’Odds Ratio de **18,57** indique une augmentation extrêmement élevée du risque. Les patients présentant cette caractéristique ont une probabilité de maladie multipliée par plus de 18 par rapport au profil de référence.
-
-* **Un ou trois vaisseaux atteints (`ca_1.0`, `ca_3.0`)**
-  Les Odds Ratios compris entre **7,93** et **8,05** confirment le rôle critique de cette variable, soulignant l’importance des examens d’imagerie dans le diagnostic.
-
-### 5.2 Influence du sexe
-
-* **Profil masculin (`sex_Male`)**
-  Avec un Odds Ratio de **5,80**, le sexe masculin apparaît comme un facteur de risque majeur. À caractéristiques cliniques équivalentes, les hommes présentent une probabilité de maladie cardiaque nettement supérieure à celle des femmes.
-
----
-
-## 6. Analyse des Signaux de Protection
-
-Certaines variables présentent des Odds Ratios significativement inférieurs à 1, traduisant un effet protecteur apparent.
-
-### 6.1 Douleur thoracique typique
-
-* **Angine typique (`cp_typical angina`)**
-  Un Odds Ratio de **0,15** suggère une réduction du risque de l’ordre de 85 %. Ce résultat, contre-intuitif à première vue, met en évidence la différence entre symptômes perçus et gravité réelle de la pathologie.
-
-### 6.2 Interprétation clinique
-
-Les douleurs thoraciques typiques sont souvent rapidement prises en charge et peuvent correspondre à des causes moins sévères, tandis que les pathologies les plus graves peuvent évoluer de manière plus silencieuse, détectées principalement par des examens techniques.
-
----
-
-## 7. Performance Globale du Modèle et Recommandations
-
+7. Conclusion
+Cette étude démontre que la régression logistique, bien que simple, est extrêmement efficace pour le diagnostic binaire de maladies cardiaques. La comparaison montre que notre implémentation personnalisée converge vers des résultats similaires à ceux des bibliothèques industrielles, validant ainsi la compréhension des mécanismes d'optimisation et de descente de gradient.
 Le modèle présente une performance satisfaisante, caractérisée par une bonne capacité de détection des patients réellement atteints. La sensibilité élevée permet de limiter les faux négatifs, ce qui est essentiel dans un contexte médical.
 
-### Recommandations principales:
 
-1. **Prioriser les examens d’imagerie**
-   La fluoroscopie des vaisseaux coronaires doit être considérée comme un examen clé dans l’évaluation du risque.
-
-2. **Renforcer la vigilance chez les hommes**
-   Le sexe masculin constitue un facteur de risque structurel nécessitant une surveillance accrue.
-
-3. **Utiliser le modèle comme outil de tri**
-   Le modèle peut servir de filtre décisionnel pour orienter les patients vers des examens cardiologiques approfondis.
-
----
-
-## 8. Limites de l’Étude et Perspectives
-
-Cette étude repose sur un dataset de taille limitée, ce qui peut affecter la généralisation des résultats. De futures améliorations pourraient inclure :
-
-* l’intégration de jeux de données plus récents ou plus volumineux,
-* la comparaison avec d’autres modèles (arbres de décision, forêts aléatoires),
-* l’ajout d’une validation croisée approfondie.
