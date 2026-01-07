@@ -113,7 +113,7 @@ Les douleurs thoraciques typiques sont souvent rapidement prises en charge et pe
 
 Le modèle présente une performance satisfaisante, caractérisée par une bonne capacité de détection des patients réellement atteints. La sensibilité élevée permet de limiter les faux négatifs, ce qui est essentiel dans un contexte médical.
 
-### Recommandations principales :
+### Recommandations principales:
 
 1. **Prioriser les examens d’imagerie**
    La fluoroscopie des vaisseaux coronaires doit être considérée comme un examen clé dans l’évaluation du risque.
